@@ -22,11 +22,16 @@ app.use('/api/auth', authRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/appointments', appointmentRoutes);
 
+app.get('/', (req, res) => {
+  res.json({ message: 'Medisphere API Live', time: new Date().toISOString() });
+});
+
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', message: 'Medisphere API is running' });
 });
 
 export default app;
+
 
 
