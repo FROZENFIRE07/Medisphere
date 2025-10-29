@@ -1,0 +1,17 @@
+{
+  "name": "medisphere",
+  "version": "1.0.0",
+  "description": "Medisphere - Your Health Connect",
+  "scripts": {
+    "install-all": "cd server && npm install && cd ../client && npm install",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "seed": "cd server && npx tsx src/seed.ts"
+  },
+  "keywords": ["healthcare", "mern", "react", "typescript"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+
