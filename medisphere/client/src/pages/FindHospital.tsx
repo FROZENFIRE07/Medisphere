@@ -19,24 +19,25 @@ export default function FindHospital() {
   const [location, setLocation] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [loading, setLoading] = useState(true);
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  
+  // FIXED: Use `number` instead of `NodeJS.Timeout`
+  const [debounceTimer, setDebounceTimer] = useState<number | null>(null);
 
   useEffect(() => {
     fetchHospitals();
   }, []);
 
   useEffect(() => {
-    if (debounceTimer) {
+    if (debounceTimer !== null) {
       clearTimeout(debounceTimer);
     }
-
     const timer = setTimeout(() => {
       filterHospitals();
     }, 500);
-
     setDebounceTimer(timer);
+
     return () => {
-      if (timer) clearTimeout(timer);
+      clearTimeout(timer);
     };
   }, [searchTerm, location, specialty, hospitals]);
 
@@ -55,7 +56,6 @@ export default function FindHospital() {
 
   const filterHospitals = () => {
     let filtered = [...hospitals];
-
     if (searchTerm) {
       filtered = filtered.filter(
         (h) =>
@@ -63,19 +63,16 @@ export default function FindHospital() {
           h.location.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
     if (location) {
       filtered = filtered.filter((h) =>
         h.location.toLowerCase().includes(location.toLowerCase())
       );
     }
-
     if (specialty) {
       filtered = filtered.filter((h) =>
         h.specialty.some((s) => s.toLowerCase().includes(specialty.toLowerCase()))
       );
     }
-
     setFilteredHospitals(filtered);
   };
 
@@ -115,7 +112,6 @@ export default function FindHospital() {
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
               />
             </div>
-
             <div className="flex-1 relative">
               <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
@@ -126,7 +122,6 @@ export default function FindHospital() {
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
               />
             </div>
-
             <div className="flex-1 relative">
               <Stethoscope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <select
@@ -224,4 +219,3 @@ export default function FindHospital() {
     </div>
   );
 }
-
