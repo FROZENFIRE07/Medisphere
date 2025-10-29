@@ -1,9 +1,12 @@
 import app from './app';
 
-const PORT = process.env.PORT || 5000;
+// FOR LOCAL DEV ONLY
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
 
-// Only used for traditional server (not serverless)
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
+// FOR VERCEL: Export the app
+export default app;
