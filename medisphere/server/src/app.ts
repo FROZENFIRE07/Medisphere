@@ -13,8 +13,25 @@ connectDB();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// DYNAMIC CORS — ONLY YOUR FRONTEND
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('CORS BLOCKED:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Routes
@@ -22,6 +39,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/appointments', appointmentRoutes);
 
+// Root
 app.get('/', (req, res) => {
   res.json({ message: 'Medisphere API Live', time: new Date().toISOString() });
 });
@@ -32,6 +50,3 @@ app.get('/api/health', (_req, res) => {
 });
 
 export default app;
-
-
-
