@@ -87,14 +87,13 @@ export default function Portal() {
     try {
       // Send the hospitalId (MongoDB ObjectId) to backend
       await appointmentAPI.create({
-        hospitalId: formData.hospitalId, // This is already the _id from the select
-        patientName: formData.patientName,
-        email: formData.email,
-        phone: formData.phone,
-        preferredDate: formData.preferredDate,
-        notes: formData.notes
+        hospitalId: formData.hospitalId,
+        date: formData.preferredDate, // Map preferredDate to date
+        notes: formData.notes,         // Pass notes
+        // Combine patient info into the 'reason' field
+        reason: `Patient: ${formData.patientName}, Email: ${formData.email}, Phone: ${formData.phone}`
       });
-      
+
       toast.success('Appointment booked successfully!');
       setShowNewAppointment(false);
       fetchAppointments();
@@ -428,3 +427,4 @@ export default function Portal() {
     </div>
   );
 }
+
