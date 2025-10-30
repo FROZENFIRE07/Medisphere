@@ -1,23 +1,29 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, Search, Stethoscope, Award, TrendingUp, Shield, Globe, MapPin, Link as LinkIcon } from 'lucide-react';
+import { Calendar, Search, Stethoscope, Award, TrendingUp, Shield, Globe, MapPin, Link as LinkIcon, X, User, Phone, Mail, MessageSquare } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { hospitalAPI } from '../lib/api'; // Make sure this path is correct
-import toast from 'react-hot-toast'; // Optional: for success/error messages
+import { hospitalAPI } from '../lib/api';
+import toast from 'react-hot-toast';
 
 export default function Home() {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedHospital, setSelectedHospital] = useState<any>(null);
   const [featuredHospitals, setFeaturedHospitals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bookingData, setBookingData] = useState({
+    patientName: '',
+    email: '',
+    phone: '',
+    preferredDate: '',
+    notes: ''
+  });
+  const [submitting, setSubmitting] = useState(false);
 
-  // Fetch hospitals on mount
   useEffect(() => {
     const fetchHospitals = async () => {
       try {
         const res = await hospitalAPI.getAll();
         const hospitals = res.data || [];
-        // Shuffle and take 5
         const shuffled = hospitals.sort(() => 0.5 - Math.random());
         setFeaturedHospitals(shuffled.slice(0, 5));
       } catch (error: any) {
@@ -33,6 +39,73 @@ export default function Home() {
   const openBookingModal = (hospital: any) => {
     setSelectedHospital(hospital);
     setShowBookingModal(true);
+    setBookingData({
+      patientName: '',
+      email: '',
+      phone: '',
+      preferredDate: '',
+      notes: ''
+    });
+  };
+
+  const closeBookingModal = () => {
+    setShowBookingModal(false);
+    setSelectedHospital(null);
+    setBookingData({
+      patientName: '',
+      email: '',
+      phone: '',
+      preferredDate: '',
+      notes: ''
+    });
+  };
+
+  const handleInputChange = (e: any) => {
+    const { name, value } = e.target;
+    setBookingData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmitBooking = async (e: any) => {
+    e.preventDefault();
+    
+    if (!selectedHospital) {
+      toast.error('Please select a hospital');
+      return;
+    }
+
+    if (!bookingData.patientName || !bookingData.email || !bookingData.phone || !bookingData.preferredDate) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setSubmitting(true);
+    
+    try {
+      // CRITICAL FIX: Send hospital._id instead of hospital name
+      const appointmentData = {
+        hospitalId: selectedHospital._id, // Using the MongoDB ObjectId
+        patientName: bookingData.patientName,
+        email: bookingData.email,
+        phone: bookingData.phone,
+        preferredDate: bookingData.preferredDate,
+        notes: bookingData.notes
+      };
+
+      // Replace with your actual appointment API call
+      // await appointmentAPI.create(appointmentData);
+      
+      console.log('Appointment data:', appointmentData);
+      toast.success('Appointment request submitted successfully!');
+      closeBookingModal();
+    } catch (error: any) {
+      console.error('Failed to submit appointment:', error);
+      toast.error(error.response?.data?.message || 'Failed to submit appointment');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const statistics = [
@@ -243,43 +316,191 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Booking Modal */}
+      {/* Enhanced Booking Modal */}
       {showBookingModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="glass rounded-2xl p-8 max-w-md w-full"
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: "spring", duration: 0.5 }}
+            className="glass rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-white/20 max-h-[90vh] overflow-y-auto"
           >
-            <h3 className="text-2xl font-bold mb-4">Book Appointment</h3>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gradient">Book Appointment</h3>
+                  <p className="text-sm text-gray-500">Schedule your visit</p>
+                </div>
+              </div>
+              <button
+                onClick={closeBookingModal}
+                className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
             {selectedHospital ? (
               <>
-                <p className="text-lg font-semibold mb-2">{selectedHospital.name}</p>
-                <p className="text-gray-600 mb-4">{selectedHospital.location}</p>
-                <p className="text-sm text-gray-500 mb-6">
-                  You are about to book an appointment. Please login to continue.
-                </p>
+                <div className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/10">
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center flex-shrink-0">
+                      <Stethoscope className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-lg mb-1">{selectedHospital.name}</h4>
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {selectedHospital.location}
+                      </p>
+                      {selectedHospital.specialty && (
+                        <p className="text-xs text-secondary mt-1">
+                          {selectedHospital.specialty.slice(0, 2).join(' • ')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">
+                      <User className="w-4 h-4 inline mr-1" />
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="patientName"
+                      value={bookingData.patientName}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-colors"
+                      placeholder="Enter your full name"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">
+                      <Mail className="w-4 h-4 inline mr-1" />
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={bookingData.email}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-colors"
+                      placeholder="your.email@example.com"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">
+                      <Phone className="w-4 h-4 inline mr-1" />
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={bookingData.phone}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-colors"
+                      placeholder="+1 (555) 000-0000"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">
+                      <Calendar className="w-4 h-4 inline mr-1" />
+                      Preferred Date *
+                    </label>
+                    <input
+                      type="date"
+                      name="preferredDate"
+                      value={bookingData.preferredDate}
+                      onChange={handleInputChange}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-colors"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">
+                      <MessageSquare className="w-4 h-4 inline mr-1" />
+                      Additional Notes
+                    </label>
+                    <textarea
+                      name="notes"
+                      value={bookingData.notes}
+                      onChange={handleInputChange}
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:outline-none transition-colors resize-none"
+                      placeholder="Any specific concerns or requirements..."
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={closeBookingModal}
+                      className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-semibold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmitBooking}
+                      disabled={submitting}
+                      className="flex-1 px-4 py-3 btn-gradient text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {submitting ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <Calendar className="w-4 h-4" />
+                          Confirm Booking
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               </>
             ) : (
-              <p className="text-gray-600 mb-6">
-                Please <Link to="/login" className="text-primary hover:underline">login</Link> or{' '}
-                <Link to="/register" className="text-primary hover:underline">register</Link> to book an appointment.
-              </p>
+              <>
+                <div className="text-center py-6">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                    <Calendar className="w-10 h-10 text-primary" />
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    Please login to your account to book an appointment and access our healthcare services.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={closeBookingModal}
+                    className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <Link
+                    to="/login"
+                    className="flex-1 text-center px-4 py-3 btn-gradient text-white rounded-xl font-semibold"
+                  >
+                    Login to Continue
+                  </Link>
+                </div>
+              </>
             )}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowBookingModal(false)}
-                className="flex-1 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-              <Link
-                to="/login"
-                className="flex-1 text-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                Login to Book
-              </Link>
-            </div>
           </motion.div>
         </div>
       )}
