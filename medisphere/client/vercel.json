@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://medisphere-nvf6.vercel.app/api/$1"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
