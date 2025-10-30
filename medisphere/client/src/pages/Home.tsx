@@ -1,43 +1,39 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, Search, Stethoscope, Award, TrendingUp, Shield, Globe } from 'lucide-react';
-import { useState } from 'react';
+import { Calendar, Search, Stethoscope, Award, TrendingUp, Shield, Globe, MapPin, Link as LinkIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { hospitalAPI } from '../lib/api'; // Make sure this path is correct
+import toast from 'react-hot-toast'; // Optional: for success/error messages
 
 export default function Home() {
-  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedHospital, setSelectedHospital] = useState<any>(null);
+  const [featuredHospitals, setFeaturedHospitals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const featuredHospitals = [
-    {
-      name: "Dr. Hedgewar Hospital",
-      location: "Chh.Sambhajinagar, Maharashtra",
-      specialty: "super-specialty services",
-      link: "https://www.hedgewar.org/",
-    },
-    {
-      name: "Medicover Hospital",
-      location: "Chh.Sambhajinagar, Maharashtra",
-      specialty: "super-specialty services",
-      link: "https://www.medicoverhospitals.in/hospitals/maharashtra/aurangabad/",
-    },
-    {
-      name: "Seth Nandlal Dhoot Hospital",
-      location: "Chh.Sambhajinagar, Maharashtra",
-      specialty: "super-specialty services",
-      link: "https://dhoothospitals.com/",
-    },
-    {
-      name: "Kamalnayan Bajaj Hospital",
-      location: "Chh.Sambhajinagar, Maharashtra",
-      specialty: "super-specialty services",
-      link: "https://bajajhospital.com/",
-    },
-    {
-      name: "United Ciigma Hospital",
-      location: "Chh.Sambhajinagar, Maharashtra",
-      specialty: "super-specialty services",
-      link: "https://www.ciigmagroup.org/",
-    },
-  ];
+  // Fetch hospitals on mount
+  useEffect(() => {
+    const fetchHospitals = async () => {
+      try {
+        const res = await hospitalAPI.getAll();
+        const hospitals = res.data || [];
+        // Shuffle and take 5
+        const shuffled = hospitals.sort(() => 0.5 - Math.random());
+        setFeaturedHospitals(shuffled.slice(0, 5));
+      } catch (error: any) {
+        console.error('Failed to load hospitals:', error);
+        toast.error('Failed to load hospitals');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHospitals();
+  }, []);
+
+  const openBookingModal = (hospital: any) => {
+    setSelectedHospital(hospital);
+    setShowBookingModal(true);
+  };
 
   const statistics = [
     {
@@ -72,55 +68,38 @@ export default function Home() {
     <div className="pt-20">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Animated Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/10 to-transparent" />
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
-
         <div className="container mx-auto px-4 relative z-10">
           <motion.div
             initial="hidden"
             animate="visible"
             variants={{
               visible: {
-                transition: {
-                  staggerChildren: 0.3,
-                },
+                transition: { staggerChildren: 0.3 },
               },
             }}
             className="text-center"
           >
-            <motion.h1
-              variants={fadeInUp}
-              className="text-5xl md:text-7xl font-heading font-bold mb-6 text-gradient"
-            >
+            <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-heading font-bold mb-6 text-gradient">
               Medisphere
             </motion.h1>
-            <motion.h2
-              variants={fadeInUp}
-              className="text-2xl md:text-4xl font-bold mb-4 text-text"
-            >
+            <motion.h2 variants={fadeInUp} className="text-2xl md:text-4xl font-bold mb-4 text-text">
               Connecting You to World-Class Care
             </motion.h2>
-            <motion.p
-              variants={fadeInUp}
-              className="text-lg md:text-xl text-gray-600 mb-12 max-w-3xl mx-auto"
-            >
+            <motion.p variants={fadeInUp} className="text-lg md:text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
               A global network of elite healthcare institutions dedicated to your well-being.
             </motion.p>
-
-            <motion.div
-              variants={fadeInUp}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            >
-              <Link to="/find-hospital" className="btn-gradient">
+            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link to="/find-hospital" className="btn-gradient inline-flex items-center">
                 <Search className="w-5 h-5 mr-2" />
                 Find a Doctor Now
               </Link>
               <button
-                onClick={() => setShowAppointmentModal(true)}
+                onClick={() => setShowBookingModal(true)}
                 className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-primary border-2 border-primary rounded-xl hover:bg-primary hover:text-white transition-all duration-300"
               >
                 <Calendar className="w-5 h-5 mr-2" />
@@ -129,8 +108,6 @@ export default function Home() {
             </motion.div>
           </motion.div>
         </div>
-
-        {/* Scroll Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -165,36 +142,66 @@ export default function Home() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredHospitals.map((hospital, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="glass rounded-2xl p-6 card-hover group"
-              >
-                <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl mb-4 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                  <Stethoscope className="w-16 h-16 text-primary" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">{hospital.name}</h3>
-                <p className="text-gray-600 mb-3 flex items-center">
-                  <span className="mr-2">📍</span>
-                  {hospital.location}
-                </p>
-                <p className="text-sm text-secondary mb-4">{hospital.specialty}</p>
-                <a
-                  href={hospital.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full text-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          {loading ? (
+            <div className="text-center py-10">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="mt-2 text-gray-600">Loading hospitals...</p>
+            </div>
+          ) : featuredHospitals.length === 0 ? (
+            <p className="text-center text-gray-500">No hospitals available.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredHospitals.map((hospital, index) => (
+                <motion.div
+                  key={hospital._id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="glass rounded-2xl p-6 card-hover group"
                 >
-                  Visit Website
-                </a>
-              </motion.div>
-            ))}
-          </div>
+                  <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                    {hospital.logoUrl ? (
+                      <img
+                        src={hospital.logoUrl}
+                        alt={hospital.name}
+                        className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-300"
+                      />
+                    ) : (
+                      <Stethoscope className="w-16 h-16 text-primary" />
+                    )}
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">{hospital.name}</h3>
+                  <p className="text-gray-600 mb-3 flex items-center text-sm">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    {hospital.location}
+                  </p>
+                  <p className="text-sm text-secondary mb-4 line-clamp-2">
+                    {hospital.specialty?.join(', ')}
+                  </p>
+                  <div className="flex gap-2">
+                    {hospital.website && (
+                      <a
+                        href={hospital.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 text-center px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm flex items-center justify-center"
+                      >
+                        <LinkIcon className="w-4 h-4 mr-1" />
+                        Website
+                      </a>
+                    )}
+                    <button
+                      onClick={() => openBookingModal(hospital)}
+                      className="flex-1 px-3 py-2 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-all text-sm"
+                    >
+                      Book Now
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -214,7 +221,6 @@ export default function Home() {
               Excellence in every aspect of healthcare
             </p>
           </motion.div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {statistics.map((stat, index) => (
               <motion.div
@@ -237,28 +243,46 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Appointment Modal */}
-      {showAppointmentModal && (
+      {/* Booking Modal */}
+      {showBookingModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="glass rounded-2xl p-8 max-w-md w-full"
           >
-            <h3 className="text-2xl font-bold mb-4">Book an Appointment</h3>
-            <p className="text-gray-600 mb-6">
-              Please <Link to="/login" className="text-primary hover:underline">login</Link> or <Link to="/register" className="text-primary hover:underline">register</Link> to book an appointment.
-            </p>
-            <button
-              onClick={() => setShowAppointmentModal(false)}
-              className="w-full px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Close
-            </button>
+            <h3 className="text-2xl font-bold mb-4">Book Appointment</h3>
+            {selectedHospital ? (
+              <>
+                <p className="text-lg font-semibold mb-2">{selectedHospital.name}</p>
+                <p className="text-gray-600 mb-4">{selectedHospital.location}</p>
+                <p className="text-sm text-gray-500 mb-6">
+                  You are about to book an appointment. Please login to continue.
+                </p>
+              </>
+            ) : (
+              <p className="text-gray-600 mb-6">
+                Please <Link to="/login" className="text-primary hover:underline">login</Link> or{' '}
+                <Link to="/register" className="text-primary hover:underline">register</Link> to book an appointment.
+              </p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowBookingModal(false)}
+                className="flex-1 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <Link
+                to="/login"
+                className="flex-1 text-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Login to Book
+              </Link>
+            </div>
           </motion.div>
         </div>
       )}
     </div>
   );
 }
-
