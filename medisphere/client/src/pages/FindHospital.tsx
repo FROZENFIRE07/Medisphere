@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Search, MapPin, Filter, Stethoscope } from 'lucide-react';
 import { hospitalAPI } from '../lib/api';
 
@@ -20,23 +21,12 @@ export default function FindHospital() {
   const [loading, setLoading] = useState(true);
   const [debounceTimer, setDebounceTimer] = useState<number | null>(null);
 
+  /* ------------------------------------------------------------------ */
+  /*  FETCH ALL HOSPITALS                                                */
+  /* ------------------------------------------------------------------ */
   useEffect(() => {
     fetchHospitals();
   }, []);
-
-  useEffect(() => {
-    if (debounceTimer !== null) {
-      clearTimeout(debounceTimer);
-    }
-    const timer = setTimeout(() => {
-      filterHospitals();
-    }, 500);
-    setDebounceTimer(timer);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [searchTerm, location, specialty, hospitals]);
 
   const fetchHospitals = async () => {
     try {
@@ -51,67 +41,102 @@ export default function FindHospital() {
     }
   };
 
+  /* ------------------------------------------------------------------ */
+  /*  DEBOUNCED FILTERING (runs on every input change)                  */
+  /* ------------------------------------------------------------------ */
+  useEffect(() => {
+    if (debounceTimer !== null) clearTimeout(debounceTimer);
+
+    const timer = setTimeout(() => {
+      filterHospitals();
+    }, 500);
+
+    setDebounceTimer(timer);
+    return () => clearTimeout(timer);
+  }, [searchTerm, location, specialty, hospitals]);
+
+  /* ------------------------------------------------------------------ */
+  /*  ENHANCED FILTER LOGIC (word-wise + alphabet-wise)                 */
+  /* ------------------------------------------------------------------ */
   const filterHospitals = () => {
     let filtered = [...hospitals];
-    
-    // Enhanced search logic: word-wise and alphabet-wise filtering
+
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase().trim();
-      
+
       filtered = filtered.filter((h) => {
         const nameLower = h.name.toLowerCase();
         const locationLower = h.location.toLowerCase();
-        
-        // Check if the search term matches:
-        // 1. Start of the full name (alphabet-wise)
-        // 2. Start of any word in the name (word-wise)
-        // 3. Anywhere in the name (partial match)
-        // 4. Location match
-        
+
         const startsWithSearch = nameLower.startsWith(searchLower);
         const wordsInName = nameLower.split(' ');
-        const anyWordStartsWith = wordsInName.some(word => word.startsWith(searchLower));
+        const anyWordStartsWith = wordsInName.some((w) => w.startsWith(searchLower));
         const containsSearch = nameLower.includes(searchLower);
         const locationMatch = locationLower.includes(searchLower);
-        
+
         return startsWithSearch || anyWordStartsWith || containsSearch || locationMatch;
       });
     }
-    
+
     if (location) {
       filtered = filtered.filter((h) =>
         h.location.toLowerCase().includes(location.toLowerCase())
       );
     }
-    
+
     if (specialty) {
       filtered = filtered.filter((h) =>
         h.specialty.some((s) => s.toLowerCase().includes(specialty.toLowerCase()))
       );
     }
-    
+
     setFilteredHospitals(filtered);
   };
 
-  const specialties = ['cardiology', 'orthopedics', 'oncology', 'neurology', 'pediatrics', 'dermatology'];
+  /* ------------------------------------------------------------------ */
+  /*  SPECIALTIES LIST                                                   */
+  /* ------------------------------------------------------------------ */
+  const specialties = [
+    'cardiology',
+    'orthopedics',
+    'oncology',
+    'neurology',
+    'pediatrics',
+    'dermatology',
+  ];
 
+  /* ------------------------------------------------------------------ */
+  /*  RENDER                                                            */
+  /* ------------------------------------------------------------------ */
   return (
     <div className="pt-32 pb-20 min-h-screen">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+
+        {/* ----- Header ----- */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
           <h1 className="text-4xl md:text-5xl font-heading font-bold mb-4 text-gradient">
             Find a Hospital
           </h1>
           <p className="text-gray-600 text-lg">
             Search through our network of elite healthcare institutions
           </p>
-        </div>
+        </motion.div>
 
-        {/* Search Bar */}
-        <div className="glass rounded-2xl p-6 mb-8">
+        {/* ----- Search Bar ----- */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="glass rounded-2xl p-6 mb-8"
+        >
           <div className="flex flex-col md:flex-row gap-4">
+            {/* Name / General Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search by hospital name..."
@@ -120,8 +145,10 @@ export default function FindHospital() {
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
               />
             </div>
+
+            {/* Location */}
             <div className="flex-1 relative">
-              <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Filter by location..."
@@ -130,8 +157,10 @@ export default function FindHospital() {
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
               />
             </div>
+
+            {/* Specialty */}
             <div className="flex-1 relative">
-              <Stethoscope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Stethoscope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <select
                 value={specialty}
                 onChange={(e) => setSpecialty(e.target.value)}
@@ -146,17 +175,23 @@ export default function FindHospital() {
               </select>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Results */}
+        {/* ----- Results ----- */}
         {loading ? (
+          /* Skeleton */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="skeleton h-64 rounded-2xl" />
             ))}
           </div>
         ) : filteredHospitals.length === 0 ? (
-          <div className="text-center py-20">
+          /* No Results */
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20"
+          >
             <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
               <Filter className="w-12 h-12 text-gray-400" />
             </div>
@@ -172,47 +207,66 @@ export default function FindHospital() {
             >
               Clear Filters
             </button>
-          </div>
+          </motion.div>
         ) : (
+          /* Hospital Grid – with staggered row & left-to-right animation */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredHospitals.map((hospital, index) => (
-              <div
-                key={hospital._id}
-                className="glass rounded-2xl p-6 card-hover group"
-              >
-                <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl mb-4 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                  <Stethoscope className="w-16 h-16 text-primary" />
-                </div>
-                <h3 className="text-xl font-bold mb-2">{hospital.name}</h3>
-                <p className="text-gray-600 mb-3 flex items-center">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  {hospital.location}
-                </p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {hospital.specialty.slice(0, 2).map((spec, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
-                    >
-                      {spec}
-                    </span>
-                  ))}
-                  {hospital.specialty.length > 2 && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                      +{hospital.specialty.length - 2} more
-                    </span>
-                  )}
-                </div>
-                <a
-                  href={hospital.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full text-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            {filteredHospitals.map((hospital, index) => {
+              /* Determine which row this card belongs to (0-based) */
+              const rowIndex = Math.floor(index / 3);
+              /* Position inside the row (0, 1, 2) */
+              const colIndex = index % 3;
+
+              return (
+                <motion.div
+                  key={hospital._id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-100px' }}
+                  transition={{
+                    duration: 0.5,
+                    delay: rowIndex * 0.15 + colIndex * 0.08, // row stagger + left-to-right
+                  }}
+                  className="glass rounded-2xl p-6 card-hover group"
                 >
-                  Visit Website
-                </a>
-              </div>
-            ))}
+                  <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl mb-4 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                    <Stethoscope className="w-16 h-16 text-primary" />
+                  </div>
+
+                  <h3 className="text-xl font-bold mb-2">{hospital.name}</h3>
+
+                  <p className="text-gray-600 mb-3 flex items-center">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {hospital.location}
+                  </p>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {hospital.specialty.slice(0, 2).map((spec, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
+                      >
+                        {spec}
+                      </span>
+                    ))}
+                    {hospital.specialty.length > 2 && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                        +{hospital.specialty.length - 2} more
+                      </span>
+                    )}
+                  </div>
+
+                  <a
+                    href={hospital.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full text-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    Visit Website
+                  </a>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
