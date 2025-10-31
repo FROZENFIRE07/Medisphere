@@ -111,23 +111,23 @@ export default function Home() {
   const statistics = [
     {
       icon: Globe,
-      title: "Internationally accredited hospitals",
+      title: "Connecting community with trusted hospital information",
       value: "25+",
-      description: "Trusted globally",
+      description: "bestt hospitals at your fingertips",
       color: "from-blue-500 to-cyan-500",
     },
     {
       icon: TrendingUp,
       title: "Cutting-edge treatments & trials",
       value: "50,000+",
-      description: "Specialists worldwide",
+      description: "verified data reflecting real progress",
       color: "from-green-500 to-emerald-500",
     },
     {
       icon: Shield,
-      title: "One portal, seamless care",
+      title: "committed to safe, reliable medical care",
       value: "1M+",
-      description: "Patients served",
+      description: "authentic details you can trust",
       color: "from-purple-500 to-pink-500",
     },
   ];
@@ -169,7 +169,7 @@ export default function Home() {
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link to="/find-hospital" className="btn-gradient inline-flex items-center">
                 <Search className="w-5 h-5 mr-2" />
-                Find a Doctor Now
+                Find a Hospital Now
               </Link>
               <button
                 onClick={() => setShowBookingModal(true)}
@@ -507,3 +507,4 @@ export default function Home() {
     </div>
   );
 }
+
