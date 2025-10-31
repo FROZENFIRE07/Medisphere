@@ -135,8 +135,8 @@ export default function Reviews() {
                 <Play className="w-8 h-8 text-primary ml-1" />
               </button>
               <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/60 to-transparent">
-                <p className="text-white font-semibold text-lg">Watch Maria's Recovery Story</p>
-                <p className="text-white/80 text-sm">Hear from our patients about their journey</p>
+                <p className="text-white font-semibold text-lg">Watch Stroke Recovery Story</p>
+                <p className="text-white/80 text-sm">Hear from patients about their journey</p>
               </div>
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function Reviews() {
                 <iframe
                   width="100%"
                   height="100%"
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  src="https://www.youtube.com/embed/ive2pcGIeVY?si=b182uZo1Y3sUL-Vc"
                   title="Patient Recovery Story"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -183,4 +183,3 @@ export default function Reviews() {
     </div>
   );
 }
-

@@ -1,0 +1,16 @@
+# ignore all dependency folders
+node_modules/
+
+# build outputs
+dist/
+build/
+
+# env variables
+.env
+.env.local
+
+# log files
+*.log
+
+# editor folders
+.vscode
