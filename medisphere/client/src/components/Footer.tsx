@@ -14,16 +14,28 @@ export default function Footer() {
   ];
 
   const legalLinks = [
-    { label: 'Privacy Policy', path: '#' },
-    { label: 'Terms of Use', path: '#' },
-    { label: 'HIPAA/GDPR Compliance', path: '#' },
+    { label: 'Privacy Policy', path: '/privacy-policy' },
+    { label: 'Terms of Use', path: '/terms-of-use' },
   ];
 
   const socialLinks = [
-    { icon: Facebook, path: '#', label: 'Facebook' },
-    { icon: Twitter, path: '#', label: 'Twitter' },
-    { icon: Linkedin, path: '#', label: 'LinkedIn' },
-  ];
+  { icon: Linkedin, path: 'https://www.linkedin.com/in/dipak-aghade-0b2697326', label: 'LinkedIn' },
+];
+
+  {socialLinks.map((social) => (
+  <a
+    key={social.label}
+    href={social.path}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label={social.label}
+    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+  >
+    <social.icon className="w-5 h-5" />
+  </a>
+))}
+
+
 
   return (
     <footer className="bg-gradient-to-br from-slate-900 via-primary to-slate-900 text-white mt-20">
@@ -92,14 +104,14 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center space-x-2 text-gray-300">
                 <Mail className="w-5 h-5 text-secondary" />
-                <a href="mailto:info@medisphere.global" className="hover:text-white transition-colors">
-                  info@medisphere.global
+                <a href="mailto:dipakaghade1185@gmail.com" className="hover:text-white transition-colors">
+                  info@OurTeam.com
                 </a>
               </li>
               <li className="flex items-center space-x-2 text-gray-300">
                 <Phone className="w-5 h-5 text-secondary" />
-                <a href="tel:+1800-MEDISPH" className="hover:text-white transition-colors">
-                  Emergency: +1-800-MEDISPH
+                <a href="tel:+919766158419" className="hover:text-white transition-colors">
+                  Emergency: +MEDISPH
                 </a>
               </li>
             </ul>
